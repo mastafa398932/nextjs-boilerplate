@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>موقع تعليمي - مثال</title>
+  <style>
+    /* بسيط ومرن: تصميم متجاوب مع RTL */
+    :root{--accent:#0b74de;--muted:#65707a}
+    *{box-sizing:border-box}
+    body{font-family: "Helvetica Neue", Arial, sans-serif;margin:0;background:#f6f8fb;color:#0b2030}
+    header{background:white;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid #e6ecf2}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:48px;height:48px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#2bb673);display:flex;align-items:center;justify-content:center;color:white;font-weight:700}
+    nav a{margin-left:12px;color:var(--muted);text-decoration:none}
+    .hero{padding:36px 20px;display:grid;grid-template-columns:1fr;gap:18px}
+    .hero-card{background:white;padding:22px;border-radius:12px;box-shadow:0 6px 18px rgba(11,32,48,0.06)}
+    h1{margin:0 0 8px;font-size:22px}
+    p.lead{margin:0;color:var(--muted)}
+    .controls{display:flex;gap:12px;margin-top:12px}
+    .btn{padding:10px 14px;border-radius:8px;border:0;cursor:pointer}
+    .btn-primary{background:var(--accent);color:white}
+    .btn-ghost{background:#eef3fb;color:var(--accent)}
+
+    .courses{padding:20px;display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+    .course{background:white;padding:16px;border-radius:10px;border:1px solid #eef3fb;display:flex;flex-direction:column;gap:12px}
+    .course h3{margin:0;font-size:16px}
+    .meta{font-size:13px;color:var(--muted)}
+    .card-actions{margin-top:auto;display:flex;gap:8px}
+
+    footer{padding:18px 20px;text-align:center;color:var(--muted);font-size:14px}
+
+    /* درس داخل نافذة */
+    .modal{position:fixed;inset:0;background:rgba(2,6,23,0.5);display:none;align-items:center;justify-content:center;padding:20px}
+    .modal.open{display:flex}
+    .panel{background:white;border-radius:12px;max-width:860px;width:100%;max-height:90vh;overflow:auto;padding:18px}
+    .lesson-content{line-height:1.6}
+
+    /* responsive */
+    @media(min-width:860px){.hero{grid-template-columns:1fr 380px}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">تع</div>
+      <div>
+        <div style="font-weight:700">مركز التعليم</div>
+        <div style="font-size:13px;color:var(--muted)">منصة لتعلّم المهارات عملياً</div>
+      </div>
+    </div>
+    <nav>
+      <a href="#">الدورات</a>
+      <a href="#">عنّا</a>
+      <a href="#">تواصل</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-card">
+        <h1>ابدأ رحلة تعلمك الآن</h1>
+        <p class="lead">دورات قصيرة ومكتوبة ومرئية، تتبَع تقدمك وتحفظ مكانك. مثال عملي جاهز يمكنك تعديله.</p>
+        <div class="controls">
+          <button class="btn btn-primary" id="exploreBtn">استعرض الدورات</button>
+          <button class="btn btn-ghost" id="createCourseBtn">إنشاء دورة جديدة</button>
+        </div>
+      </div>
+
+      <aside class="hero-card">
+        <h3>الدرس السريع</h3>
+        <p class="meta">انقر على أي دورة لفتح درس تجريبي داخل الموقع. التسجيل المحلي يحفظ تقدمك في متصفحك.</p>
+        <div style="margin-top:12px">
+          <strong>المستخدم:</strong> <span id="userLabel">زائر</span>
+        </div>
+      </aside>
+    </section>
+
+    <section>
+      <div class="courses" id="courses"></div>
+    </section>
+  </main>
+
+  <footer>
+    © جميع الحقوق محفوظة — مثال تعليمي 2025
+  </footer>
+
+  <!-- نافذة الدرس -->
+  <div class="modal" id="modal">
+    <div class="panel">
+      <button class="btn" id="closeModal" style="float:left">إغلاق</button>
+      <h2 id="lessonTitle">عنوان الدرس</h2>
+      <div class="lesson-content" id="lessonBody">
+      </div>
+      <div style="margin-top:16px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn btn-primary" id="completeBtn">وضع مكتمل</button>
+        <button class="btn" id="prevBtn">الدرس السابق</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // بيانات مثال سريعة: يمكن استبدالها باستدعاء API
+    const sampleCourses = [
+      {id:'c1',title:'مقدمة في HTML',desc:'أساسيات بناء صفحات الويب باستخدام HTML.',lessons:[{id:'c1l1',title:'ما هو HTML؟',content:'<p>HTML هي لغة توصيف لبناء هيكل صفحات الويب.</p>'},{id:'c1l2',title:'العناصر الأساسية',content:'<p>العناصر مثل &lt;h1&gt;، &lt;p&gt; و &lt;a&gt;.</p>'}]},
+      {id:'c2',title:'أساسيات JavaScript',desc:'تعلم كيفية جعل صفحاتك تفاعلية.',lessons:[{id:'c2l1',title:'مقدمة لـ JS',content:'<p>JavaScript تسمح بالتفاعل مع المستخدم.</p>'}]},
+      {id:'c3',title:'تصميم متجاوب',desc:'كيف تجعل موقعك يعمل على الأجهزة جميعها.',lessons:[{id:'c3l1',title:'نقاط التوقف',content:'<p>استخدم CSS media queries لتغيير التخطيط.</p>'}]}
+    ];
+
+    const coursesEl = document.getElementById('courses');
+    const modal = document.getElementById('modal');
+    const lessonTitle = document.getElementById('lessonTitle');
+    const lessonBody = document.getElementById('lessonBody');
+    const userLabel = document.getElementById('userLabel');
+
+    // جلسة مستخدم محلية (بدون باكند)
+    const session = {
+      user: localStorage.getItem('edu_user') || 'زائر',
+      progress: JSON.parse(localStorage.getItem('edu_progress')||'{}')
+    };
+    userLabel.textContent = session.user;
+
+    function saveProgress(){ localStorage.setItem('edu_progress', JSON.stringify(session.progress)); }
+
+    function renderCourses(){
+      coursesEl.innerHTML='';
+      sampleCourses.forEach(course=>{
+        const div = document.createElement('div');
+        div.className='course';
+        div.innerHTML = `
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <h3>${course.title}</h3>
+            <div style="font-size:12px;color:var(--muted)">${course.lessons.length} دروس</div>
+          </div>
+          <div class="meta">${course.desc}</div>
+          <div class="card-actions">
+            <button class="btn btn-primary" data-open="${course.id}">افتح الدرس</button>
+            <button class="btn" data-enroll="${course.id}">تسجيل</button>
+            <div style="margin-inline-start:auto;color:var(--muted);font-size:13px">${progressText(course.id)}</div>
+          </div>
+        `;
+        coursesEl.appendChild(div);
+      });
+    }
+
+    function progressText(courseId){
+      const p = session.progress[courseId];
+      if(!p) return 'لم تبدأ';
+      return `أكملت ${p.completed||0}/${p.total||0}`;
+    }
+
+    // حدث فتح الدرس
+    coursesEl.addEventListener('click', e=>{
+      const openId = e.target.getAttribute('data-open');
+      const enrollId = e.target.getAttribute('data-enroll');
+      if(enrollId){ enrollCourse(enrollId); renderCourses(); }
+      if(openId){ openFirstLesson(openId); }
+    });
+
+    function enrollCourse(id){
+      const course = sampleCourses.find(c=>c.id===id);
+      if(!course) return;
+      session.progress[id] = {total:course.lessons.length, completed:0, currentIndex:0};
+      saveProgress();
+      alert('تم تسجيلك في الدورة: '+course.title);
+    }
+
+    // فتح درس
+    function openFirstLesson(courseId){
+      const course = sampleCourses.find(c=>c.id===courseId);
+      if(!course) return;
+      const idx = session.progress[courseId] ? session.progress[courseId].currentIndex || 0 : 0;
+      openLesson(course, idx);
+    }
+
+    let currentCourse=null;let currentIndex=0;
+    function openLesson(course, index){
+      currentCourse = course; currentIndex = index;
+      const lesson = course.lessons[index];
+      lessonTitle.textContent = course.title + ' — ' + lesson.title;
+      lessonBody.innerHTML = lesson.content + `<hr><div style="color:var(--muted);font-size:13px">الدرس ${index+1} من ${course.lessons.length}</div>`;
+      modal.classList.add('open');
+    }
+
+    document.getElementById('closeModal').addEventListener('click', ()=>{ modal.classList.remove('open'); });
+    document.getElementById('completeBtn').addEventListener('click', ()=>{
+      if(!currentCourse) return;
+      const cid = currentCourse.id;
+      if(!session.progress[cid]) session.progress[cid]={total:currentCourse.lessons.length,completed:0,currentIndex:0};
+      const st = session.progress[cid];
+      if(st.currentIndex === undefined) st.currentIndex=0;
+      if(st.completed < st.total) st.completed = Math.max(st.completed, st.currentIndex+1);
+      st.currentIndex = Math.min(st.total-1, st.currentIndex+1);
+      saveProgress(); renderCourses();
+      alert('تم وضع الدرس كمكتمل. تقدمك محفوظ محلياً.');
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', ()=>{
+      if(!currentCourse) return;
+      currentIndex = Math.max(0, currentIndex-1);
+      openLesson(currentCourse, currentIndex);
+    });
+
+    // إنشاء دورة (واجهة سريعة داخل المتصفح)
+    document.getElementById('createCourseBtn').addEventListener('click', ()=>{
+      const title = prompt('اسم الدورة'); if(!title) return;
+      const desc = prompt('وصف قصير');
+      const newCourse = {id:'c'+(sampleCourses.length+1),title,desc,lessons:[{id:'l1',title:'درس تجريبي',content:'<p>محتوى العملة الجديدة.</p>'}]};
+      sampleCourses.push(newCourse); renderCourses();
+      alert('تم إنشاء دورة جديدة (محلي، لن تحفظ بعد إعادة تحميل الصفحة).');
+    });
+
+    // زر استعراض
+    document.getElementById('exploreBtn').addEventListener('click', ()=>{ window.scrollTo({top:document.querySelector('.courses').offsetTop,behavior:'smooth'}); });
+
+    // عرض أولي
+    renderCourses();
+
+    // ملاحظة: للتكامل مع باكند (حفظ حقيقي، تسجيل دخول، دفع) — راجع الاقتراحات في ملاحظة النشر داخل الملف.
+  </script>
+</body>
+</html>
